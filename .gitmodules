@@ -1,0 +1,6 @@
+[submodule "spring-auth-demo"]
+	path = spring-auth-demo
+	url = https://github.com/kilrasemifir/spring-auth-demo.git
+[submodule "auth-angular-banque"]
+	path = auth-angular-banque
+	url = https://github.com/kilrasemifir/auth-angular-banque.git
