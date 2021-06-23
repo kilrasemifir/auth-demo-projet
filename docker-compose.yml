@@ -5,6 +5,8 @@ services:
         image: mongo
         ports:
             - 27017:27017
+        volumes: 
+            - ./init-db:/docker-entrypoint-initdb.d/
 
     express:
         image: mongo-express
@@ -12,6 +14,7 @@ services:
             - 8081:8081
         depends_on: 
             - mongo
+
     back:
         build: spring-auth-demo
         ports:
@@ -19,10 +22,48 @@ services:
         environment: 
             - SERVER_PORT=8080
             - MONGO_HOST=mongo
+            - ELASTICSEARCH_HOST=elasticsearch
         depends_on: 
+            - elasticsearch
             - mongo
     
     front:
         build: auth-angular-banque
         ports:
             - 80:80
+
+    elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.13.2
+        volumes:
+            - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+        ports:
+            - "9200:9200"
+            - "9300:9300"
+        environment:
+            ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+            ELASTIC_PASSWORD: changeme
+            discovery.type: single-node
+    
+    kibana:
+        image: docker.elastic.co/kibana/kibana:7.13.2
+        volumes:
+            - ./kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml
+        ports:
+            - "5601:5601"
+        depends_on:
+            - elasticsearch
+
+    logstash:
+        image: docker.elastic.co/logstash/logstash:7.13.2
+        volumes:
+            - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml
+            - ./logstash/pipeline:/usr/share/logstash/pipeline
+        ports:
+            - "5044:5044"
+            - "5000:5000/tcp"
+            - "5000:5000/udp"
+            - "9600:9600"
+        environment:
+            LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+        depends_on:
+            - elasticsearch
